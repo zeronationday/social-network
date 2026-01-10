@@ -1,0 +1,19 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:18.1
+    container_name: social-network-db
+    environment:
+      POSTGRES_DB: social_network
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    networks:
+      - social-network
+
+volumes:
+  db-data:
