@@ -1,8 +1,6 @@
-version: "3.8"
-
 services:
   db:
-    image: postgres:18.1
+    image: postgres:18.1-alpine
     container_name: social-network-db
     environment:
       POSTGRES_DB: social_network
@@ -13,7 +11,11 @@ services:
     volumes:
       - db-data:/var/lib/postgresql/data
     networks:
-      - social-network
+      - social-network-backend
 
 volumes:
   db-data:
+
+networks:
+  social-network-backend:
+    driver: bridge
