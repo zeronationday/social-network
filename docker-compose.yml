@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18.1-alpine
+    image: postgres:17-alpine
     container_name: social-network-db
     environment:
       POSTGRES_DB: social_network
