@@ -9,7 +9,7 @@ import (
 func GetString(key string) string {
 	val, ok := os.LookupEnv(key)
 	if !ok {
-		log.Panicf("environment variable %s is not set", key)
+		log.Panicf("env var %s is not set", key)
 	}
 
 	return val
@@ -18,12 +18,12 @@ func GetString(key string) string {
 func GetInt(key string) int {
 	val, ok := os.LookupEnv(key)
 	if !ok {
-		log.Panicf("environment variable %s is not set", key)
+		log.Panicf("env var %s is not set", key)
 	}
 
 	valAsInt, err := strconv.Atoi(val)
 	if err != nil {
-		log.Panicf("environment variable %s is not a valid integer: %v", key, err)
+		log.Panicf("env var %s is not a valid integer: %v", key, err)
 	}
 
 	return valAsInt
