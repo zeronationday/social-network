@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-	"database/sql"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type User struct {
@@ -15,7 +16,7 @@ type User struct {
 }
 
 type UsersStorage struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
 func (s *UsersStorage) Create(ctx context.Context, user *User) error {
@@ -24,7 +25,7 @@ func (s *UsersStorage) Create(ctx context.Context, user *User) error {
 		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
 	`
 
-	err := s.db.QueryRowContext(
+	err := s.db.QueryRow(
 		ctx,
 		query,
 		user.Username,

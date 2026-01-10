@@ -2,26 +2,33 @@ package db
 
 import (
 	"context"
-	"database/sql"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func New(addr string, maxOpenConns, maxIdleConns, maxIdleTime int) (*sql.DB, error) {
-	db, err := sql.Open("postgres", addr)
+func New(addr string, maxOpenConns, maxIdleConns, maxIdleTime int) (*pgxpool.Pool, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	config, err := pgxpool.ParseConfig(addr)
 	if err != nil {
 		return nil, err
 	}
 
-	db.SetMaxOpenConns(maxOpenConns)
-	db.SetMaxIdleConns(maxIdleConns)
-	db.SetConnMaxIdleTime(time.Duration(maxIdleTime) * time.Minute)
+	config.MaxConns = int32(maxOpenConns)
+	config.MinConns = int32(maxIdleConns)
+	config.MaxConnIdleTime = time.Duration(maxIdleTime) * time.Minute
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err = db.PingContext(ctx); err != nil {
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
 		return nil, err
 	}
 
-	return db, err
+	if err = pool.Ping(ctx); err != nil {
+		pool.Close()
+		return nil, err
+	}
+
+	return pool, nil
 }

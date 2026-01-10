@@ -2,9 +2,8 @@ package storage
 
 import (
 	"context"
-	"database/sql"
 
-	"github.com/lib/pq"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Post struct {
@@ -18,7 +17,7 @@ type Post struct {
 }
 
 type PostsStorage struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
 func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
@@ -27,18 +26,19 @@ func (s *PostsStorage) Create(ctx context.Context, post *Post) error {
 		VALUES ($1, $2, $3, $4) RETURNING id, created_at, updated_at
 	`
 
-	err := s.db.QueryRowContext(
+	err := s.db.QueryRow(
 		ctx,
 		query,
 		post.Content,
 		post.Title,
 		post.UserID,
-		pq.Array(post.Tags),
+		post.Tags,
 	).Scan(
 		&post.ID,
 		&post.CreatedAt,
 		&post.UpdatedAt,
 	)
+
 	if err != nil {
 		return err
 	}
