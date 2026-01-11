@@ -7,12 +7,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/zeronationday/social-network/internal/storage"
+	"github.com/jackc/pgx/v5"
+	repo "github.com/zeronationday/social-network/internal/adapters/postgresql/sqlc"
+	"github.com/zeronationday/social-network/internal/users"
 )
 
 type application struct {
-	config  config
-	storage storage.Storage
+	config config
+	db     *pgx.Conn
 }
 
 type config struct {
@@ -21,10 +23,7 @@ type config struct {
 }
 
 type dbConfig struct {
-	addr         string
-	maxOpenConns int
-	maxIdleConns int
-	maxIdleTime  int
+	dsn string
 }
 
 func (app *application) mount() http.Handler {
@@ -35,19 +34,23 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	r.Use(middleware.Timeout(30 * time.Second))
+	r.Use(middleware.Timeout(time.Minute))
 
-	r.Route("/v1", func(r chi.Router) {
-		r.Get("/health", app.healthCheckHandler)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("ok"))
 	})
+
+	userService := users.NewService(repo.New(app.db))
+	userHandler := users.NewHandler(userService)
+	r.Get("/users", userHandler.ListUsers)
 
 	return r
 }
 
-func (app *application) run(mux http.Handler) error {
+func (app *application) run(h http.Handler) error {
 	srv := &http.Server{
 		Addr:         app.config.addr,
-		Handler:      mux,
+		Handler:      h,
 		WriteTimeout: time.Second * 30,
 		ReadTimeout:  time.Second * 10,
 		IdleTimeout:  time.Minute,
