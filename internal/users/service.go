@@ -6,6 +6,7 @@ import (
 
 	repo "github.com/zeronationday/social-network/internal/adapters/postgresql/sqlc"
 	"github.com/zeronationday/social-network/internal/crypto"
+	"github.com/zeronationday/social-network/internal/validator"
 )
 
 var (
@@ -41,12 +42,17 @@ func (s *svc) FindUserByID(ctx context.Context, id int32) (repo.User, error) {
 }
 
 func (s *svc) CreateUser(ctx context.Context, user repo.CreateUserParams) (repo.CreateUserRow, error) {
-	_, err := s.repo.FindUserByEmail(ctx, user.Email)
+	err := validator.ValidateEmail(user.Email)
+	if err != nil {
+		return repo.CreateUserRow{}, err
+	}
+
+	_, err = s.repo.FindUserByEmail(ctx, user.Email)
 	if err == nil {
 		return repo.CreateUserRow{}, ErrUserAlreadyExists
 	}
 
-	err = crypto.ValidatePasswordStrength(user.Password)
+	err = validator.ValidatePassword(user.Password)
 	if err != nil {
 		return repo.CreateUserRow{}, err
 	}
