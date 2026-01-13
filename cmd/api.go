@@ -43,6 +43,8 @@ func (app *application) mount() http.Handler {
 	userService := users.NewService(repo.New(app.db))
 	userHandler := users.NewHandler(userService)
 	r.Get("/users", userHandler.ListUsers)
+	r.Get("/users/{id}", userHandler.FindUserByID)
+	r.Post("/users", userHandler.CreateUser)
 
 	return r
 }
