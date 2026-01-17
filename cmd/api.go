@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jackc/pgx/v5"
 	repo "github.com/zeronationday/social-network/internal/adapters/postgresql/sqlc"
+	"github.com/zeronationday/social-network/internal/posts"
 	"github.com/zeronationday/social-network/internal/users"
 )
 
@@ -45,6 +46,11 @@ func (app *application) mount() http.Handler {
 	r.Get("/users", userHandler.ListUsers)
 	r.Get("/users/{id}", userHandler.FindUserByID)
 	r.Post("/users", userHandler.CreateUser)
+	r.Put("/users/{id}", userHandler.UpdateUser)
+
+	postService := posts.NewService(repo.New(app.db))
+	postHandler := posts.NewHandler(postService)
+	r.Get("/posts/user/{user_id}", postHandler.ListPostsByUserID)
 
 	return r
 }
