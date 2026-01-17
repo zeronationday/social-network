@@ -8,6 +8,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Comment struct {
+	ID        int32              `json:"id"`
+	PostID    int32              `json:"post_id"`
+	UserID    int32              `json:"user_id"`
+	Content   string             `json:"content"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Follow struct {
+	ID          int32              `json:"id"`
+	FollowerID  int32              `json:"follower_id"`
+	FollowingID int32              `json:"following_id"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+}
+
+type Like struct {
+	ID        int32              `json:"id"`
+	UserID    int32              `json:"user_id"`
+	PostID    int32              `json:"post_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+type Post struct {
+	ID        int32              `json:"id"`
+	UserID    int32              `json:"user_id"`
+	Title     string             `json:"title"`
+	Content   string             `json:"content"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
 type User struct {
 	ID        int32              `json:"id"`
 	Name      string             `json:"name"`

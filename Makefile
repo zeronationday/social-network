@@ -12,3 +12,6 @@ up:
 
 down:
 	@goose down
+
+sqlc:
+	@sqlc generate

@@ -18,6 +18,7 @@ type Service interface {
 	ListUsers(ctx context.Context) ([]repo.User, error)
 	FindUserByID(ctx context.Context, id int32) (repo.User, error)
 	CreateUser(ctx context.Context, user repo.CreateUserParams) (repo.CreateUserRow, error)
+	UpdateUser(ctx context.Context, user repo.UpdateUserParams) (repo.UpdateUserRow, error)
 }
 
 type svc struct {
@@ -64,4 +65,33 @@ func (s *svc) CreateUser(ctx context.Context, user repo.CreateUserParams) (repo.
 	user.Password = hashedPassword
 
 	return s.repo.CreateUser(ctx, user)
+}
+
+func (s *svc) UpdateUser(ctx context.Context, user repo.UpdateUserParams) (repo.UpdateUserRow, error) {
+	_, err := s.repo.FindUserByID(ctx, user.ID)
+	if err != nil {
+		return repo.UpdateUserRow{}, ErrUserNotFound
+	}
+
+	if user.Email.Valid {
+		err = validator.ValidateEmail(user.Email.String)
+		if err != nil {
+			return repo.UpdateUserRow{}, err
+		}
+	}
+
+	if user.Password.Valid {
+		err = validator.ValidatePassword(user.Password.String)
+		if err != nil {
+			return repo.UpdateUserRow{}, err
+		}
+
+		hashedPassword, err := crypto.HashPassword(user.Password.String)
+		if err != nil {
+			return repo.UpdateUserRow{}, err
+		}
+		user.Password.String = hashedPassword
+	}
+
+	return s.repo.UpdateUser(ctx, user)
 }
